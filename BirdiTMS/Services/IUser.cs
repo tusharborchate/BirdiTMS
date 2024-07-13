@@ -8,6 +8,6 @@ namespace BirdiTMS.Services
 {
     public interface IUser
     {
-        Task<JwtSecurityToken> GetJwtSecurityToken(IdentityUser user);
+        Task<JwtSecurityToken> GetJwtSecurityToken(ApplicationUser user);
     }
 }

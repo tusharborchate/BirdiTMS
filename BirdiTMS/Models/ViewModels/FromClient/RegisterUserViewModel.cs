@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BirdiTMS.Models.Entities
+namespace BirdiTMS.Models.ViewModels.FromClient
 {
-    public class RegisterUser
+    public class RegisterUserViewModel
     {
         [Required(ErrorMessage = "User Name is required")]
         public string? Username { get; set; }

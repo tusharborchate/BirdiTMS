@@ -11,23 +11,20 @@ namespace BirdiTMS.Services
     {
 
         private readonly IConfiguration _configuration;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public UserService(UserManager<IdentityUser> userManager,
-          SignInManager<IdentityUser> signInManager,
+        public UserService(UserManager<ApplicationUser> userManager,
           RoleManager<IdentityRole> roleManager,
           IConfiguration configuration
         )
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _signInManager = signInManager;
             _configuration = configuration;
 
         }
 
-        public async Task<JwtSecurityToken> GetJwtSecurityToken(IdentityUser user)
+        public async Task<JwtSecurityToken> GetJwtSecurityToken(ApplicationUser user)
         {
             var userRoles = await _userManager.GetRolesAsync(user);
             var authClaims = new List<Claim>

@@ -1,8 +1,13 @@
 using BirdiTMS.Context;
+using BirdiTMS.Models.Entities;
+using BirdiTMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,17 +15,71 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddAutoMapper(typeof(Program));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+var securityScheme = new OpenApiSecurityScheme()
+{
+    Name = "Authorization",
+    Type = SecuritySchemeType.ApiKey,
+    Scheme = "Bearer",
+    BearerFormat = "JWT",
+    In = ParameterLocation.Header,
+    Description = "JSON Web Token based security",
+};
+
+var securityReq = new OpenApiSecurityRequirement()
+{
+    {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        },
+        new string[] {}
+    }
+};
+
+var contact = new OpenApiContact()
+{
+    Name = "Mohamad Lawand",
+    Email = "hello@mohamadlawand.com",
+    Url = new Uri("http://www.mohamadlawand.com")
+};
+
+var license = new OpenApiLicense()
+{
+    Name = "Free License",
+    Url = new Uri("http://www.mohamadlawand.com")
+};
+
+var info = new OpenApiInfo()
+{
+    Version = "v1",
+    Title = "Minimal API - JWT Authentication with Swagger demo",
+    Description = "Implementing JWT Authentication in Minimal API",
+    TermsOfService = new Uri("http://www.example.com"),
+    Contact = contact,
+    License = license
+};
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(o =>
+{
+    o.SwaggerDoc("v1", info);
+    o.AddSecurityDefinition("Bearer", securityScheme);
+    o.AddSecurityRequirement(securityReq);
+});
 //use ApplicationDbContext and get sql connection string 
 builder.Services.AddDbContext<ApplicationDbContext>
-    (option => option.UseSqlServer(builder.Configuration.GetConnectionString("")));
+    (option => option.UseSqlServer(builder.Configuration.GetConnectionString("BirdiTMSCon")));
 builder.Services.AddAuthorization();
 //add identity to project
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-
+builder.Services.AddScoped<IUser, UserService>();
 //jwt validation
 builder.Services.AddAuthentication(options =>
 {
@@ -40,6 +99,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
     };
 });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -48,7 +108,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+using (var serviceScope = app.Services.CreateScope())
+{
+    var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+    // or dbContext.Database.EnsureCreatedAsync();
+}
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
