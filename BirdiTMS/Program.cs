@@ -1,4 +1,5 @@
 using BirdiTMS.Context;
+using BirdiTMS.Middlewares;
 using BirdiTMS.Models.Entities;
 using BirdiTMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,11 +8,21 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NLog;
+using NLog.Extensions.Logging;
 using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+// Configure NLog
+builder.Services.AddLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+});
 
+// Add NLog as the logger provider
+builder.Services.AddSingleton<ILoggerProvider, NLogLoggerProvider>();
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -80,6 +91,7 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddScoped<IUser, UserService>();
+
 //jwt validation
 builder.Services.AddAuthentication(options =>
 {
@@ -99,6 +111,14 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
     };
 });
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddResponseCompression();
+builder.Services.AddHsts(opt =>
+{
+    opt.MaxAge = new TimeSpan(2592000);
+    opt.Preload = true;
+});
+LogManager.Setup().LoadConfigurationFromFile(string.Concat(Directory.GetCurrentDirectory(), "/nLog.config"));
 
 var app = builder.Build();
 
@@ -108,13 +128,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseExceptionHandler(o => { });
+
 using (var serviceScope = app.Services.CreateScope())
 {
     var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await dbContext.Database.EnsureCreatedAsync();
     // or dbContext.Database.EnsureCreatedAsync();
 }
+app.UseHsts();
 app.UseHttpsRedirection();
+app.UseResponseCompression();
+app.UseStaticFiles();
+app.UseCors();
 
 app.UseAuthorization();
 

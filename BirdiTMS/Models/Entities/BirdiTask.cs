@@ -18,6 +18,8 @@ namespace BirdiTMS.Models.Entities
         public TaskStatus Status { get; set; }
         public  DateTime CreatedDate { get; set; } = DateTime.Now;
 
+        public DateTime DueDate { get; set; }
+
         [ForeignKey("User")]
         public string UserId { get; set; }
 

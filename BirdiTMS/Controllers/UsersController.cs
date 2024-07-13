@@ -20,7 +20,7 @@ namespace BirdiTMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersController: ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;    
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -28,6 +28,7 @@ namespace BirdiTMS.Controllers
         private readonly IUser _userService;
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UsersController> _logger;
 
 
         public UsersController( UserManager<ApplicationUser> userManager,
@@ -35,7 +36,8 @@ namespace BirdiTMS.Controllers
             IConfiguration configuration,
             IUser userService,
             IMapper mapper,
-            ApplicationDbContext context
+            ApplicationDbContext context,
+            ILogger<UsersController> logger
             ) { 
             _userManager = userManager;
             _roleManager = roleManager;
@@ -43,6 +45,7 @@ namespace BirdiTMS.Controllers
             _userService = userService;
             _mapper = mapper;
             _context = context;
+            _logger = logger;
 
         }
 
@@ -50,9 +53,9 @@ namespace BirdiTMS.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            _logger.LogInformation("getting data");
             var data = _context.Users.ToList();
             return Ok( _mapper.Map<List<SrUserViewModel>>(data));
-
         }
         
 
