@@ -1,6 +1,7 @@
 using BirdiTMS.Context;
 using BirdiTMS.Middlewares;
 using BirdiTMS.Models.Entities;
+using BirdiTMS.Repository;
 using BirdiTMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +12,8 @@ using Microsoft.OpenApi.Models;
 using NLog;
 using NLog.Extensions.Logging;
 using System;
+using System.Configuration;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +23,14 @@ builder.Services.AddLogging(logging =>
     logging.ClearProviders();
     logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 });
+
+builder.Services.AddTransient<ClaimsPrincipal>(
+    s =>
+    {
+        var claims = s.GetService<IHttpContextAccessor>()?.HttpContext?.User ?? new ClaimsPrincipal();
+        return claims;
+    });
+builder.Services.AddHttpContextAccessor();
 
 // Add NLog as the logger provider
 builder.Services.AddSingleton<ILoggerProvider, NLogLoggerProvider>();
@@ -83,14 +94,25 @@ builder.Services.AddSwaggerGen(o =>
     o.AddSecurityRequirement(securityReq);
 });
 //use ApplicationDbContext and get sql connection string 
-builder.Services.AddDbContext<ApplicationDbContext>
-    (option => option.UseSqlServer(builder.Configuration.GetConnectionString("BirdiTMSCon")));
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("BirdiTMSCon"));
+    options.EnableSensitiveDataLogging();
+});
 builder.Services.AddAuthorization();
 //add identity to project
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+//register dependencies
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+
+builder.Services.AddScoped<IBirdiTask, BirdiTaskService>();
+
+
 
 //jwt validation
 builder.Services.AddAuthentication(options =>
@@ -143,7 +165,7 @@ app.UseStaticFiles();
 app.UseCors();
 
 app.UseAuthorization();
-
+app.UseMiddleware<UserTaskAuthMiddleware>();
 app.MapControllers();
 
 app.Run();

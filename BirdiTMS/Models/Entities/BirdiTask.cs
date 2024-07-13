@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace BirdiTMS.Models.Entities
 {
-    public class BirdiTask
+    public class BirdiTask:BaseEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -20,7 +20,7 @@ namespace BirdiTMS.Models.Entities
 
         public DateTime DueDate { get; set; }
 
-        [ForeignKey("User")]
+        [ForeignKey((nameof(User)))]
         public string UserId { get; set; }
 
         [JsonIgnore]

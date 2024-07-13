@@ -54,8 +54,8 @@ namespace BirdiTMS.Controllers
         public async Task<IActionResult> Get()
         {
             _logger.LogInformation("getting data");
-            var data = _context.Users.ToList();
-            return Ok( _mapper.Map<List<SrUserViewModel>>(data));
+            var data = _context.Users.AsQueryable();
+            return Ok( _mapper.Map<List<SrUserViewModel>>(data.ToList()));
         }
         
 
