@@ -1,17 +1,9 @@
 ﻿using BirdiTMS.Context;
-using BirdiTMS.Controllers;
 using BirdiTMS.Extensions;
 using BirdiTMS.Models.Entities;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading;
 
 namespace BirdiTMS.Middlewares
 {
@@ -32,8 +24,8 @@ namespace BirdiTMS.Middlewares
 
             if (context.Request.RouteValues.TryGetValue("id", out object taskId) && controllerName == "BirdiTasks")
             {
-                var userId = userManager.GetUserId(context.User);
-                var result = await appDbContext.BirdiTasks.CheckExtension(a => a.Id == Convert.ToInt32(taskId) && a.UserId == userId);
+                var user =await userManager.GetUser(context.User);
+                var result = await appDbContext.BirdiTasks.CheckExtension(a => a.Id == Convert.ToInt32(taskId) && a.UserId == user.Id);
                 if(result==null)
                 {
                     var problemDetails = new ProblemDetails
@@ -42,13 +34,11 @@ namespace BirdiTMS.Middlewares
                         Title = "Error occured",
                         Detail = "Forbidden"
                     };
-                    await context.Response
-                         .WriteAsJsonAsync(problemDetails);
-                    throw new Exception();
+                    //await context.Response
+                    //     .WriteAsJsonAsync(problemDetails);
+                    throw new Exception(problemDetails.Detail);
                 }
             }
-
-               
             await _next(context);
         }
     }

@@ -1,20 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using BirdiTMS.Models;
-using BirdiTMS.Services;
-using Azure;
-using BirdiTMS.Models.ViewModels.FromClient;
-using AutoMapper;
-using BirdiTMS.Models.ViewModels.FromServer;
+﻿using AutoMapper;
 using BirdiTMS.Context;
 using BirdiTMS.Models.Entities;
+using BirdiTMS.Models.ViewModels.FromClient;
+using BirdiTMS.Models.ViewModels.FromServer;
+using BirdiTMS.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BirdiTMS.Controllers
 {
@@ -23,8 +16,6 @@ namespace BirdiTMS.Controllers
     public class UsersController: ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;    
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _configuration;
         private readonly IUser _userService;
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
@@ -32,16 +23,12 @@ namespace BirdiTMS.Controllers
 
 
         public UsersController( UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            IConfiguration configuration,
             IUser userService,
             IMapper mapper,
             ApplicationDbContext context,
             ILogger<UsersController> logger
             ) { 
             _userManager = userManager;
-            _roleManager = roleManager;
-            _configuration = configuration;
             _userService = userService;
             _mapper = mapper;
             _context = context;

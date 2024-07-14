@@ -1,14 +1,15 @@
 ﻿using BirdiTMS.Models.Entities;
 using BirdiTMS.Models.ViewModels.FromClient;
+using BirdiTMS.Models.ViewModels.FromServer;
 
 namespace BirdiTMS.Services
 {
     public interface IBirdiTask
     {
-        Task<List<BirdiTask>> GetAll(string userId);
-        Task<BirdiTask> GetTask(int taskId, string userId);
-        Task<BirdiTask> CreateTask(ClBirdiTask clBirdiTask, ApplicationUser user);
-        Task<BirdiTask> UpdateTask(ClBirdiTask clBirdiTask, ApplicationUser user);
-        Task<bool> DeleteTask(int taskId, string userId);
+        Task<List<SrBirdiTask>> GetAll(string userId);
+        Task<SrBirdiTask> GetTask(int taskId);
+        Task<SrBirdiTask> CreateTask(ClBirdiTask clBirdiTask, ApplicationUser user);
+        Task<SrBirdiTask> UpdateTask(ClBirdiTask clBirdiTask);
+        Task<bool> DeleteTask(int taskId);
     }
 }

@@ -156,7 +156,7 @@ using (var serviceScope = app.Services.CreateScope())
 {
     var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await dbContext.Database.EnsureCreatedAsync();
-    // or dbContext.Database.EnsureCreatedAsync();
+    await dbContext.Database.MigrateAsync();
 }
 app.UseHsts();
 app.UseHttpsRedirection();
@@ -165,7 +165,6 @@ app.UseStaticFiles();
 app.UseCors();
 
 app.UseAuthorization();
-app.UseMiddleware<UserTaskAuthMiddleware>();
 app.MapControllers();
 
 app.Run();

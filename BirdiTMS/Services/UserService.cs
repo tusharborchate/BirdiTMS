@@ -12,14 +12,11 @@ namespace BirdiTMS.Services
 
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
         public UserService(UserManager<ApplicationUser> userManager,
-          RoleManager<IdentityRole> roleManager,
           IConfiguration configuration
         )
         {
             _userManager = userManager;
-            _roleManager = roleManager;
             _configuration = configuration;
 
         }
