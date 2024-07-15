@@ -15,6 +15,11 @@ namespace BirdiTMS.Context
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.Entity<ApplicationUser>(e =>
+            {
+                e.Property(ep => ep.Id).ValueGeneratedOnAdd();
+
+            });
         }
     }
 }

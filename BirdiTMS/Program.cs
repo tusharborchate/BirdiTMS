@@ -155,7 +155,6 @@ app.UseExceptionHandler(o => { });
 using (var serviceScope = app.Services.CreateScope())
 {
     var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
     await dbContext.Database.MigrateAsync();
 }
 app.UseHsts();
