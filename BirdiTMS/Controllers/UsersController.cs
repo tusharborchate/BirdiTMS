@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BirdiTMS.Context;
+using BirdiTMS.Extensions;
 using BirdiTMS.Models.Entities;
 using BirdiTMS.Models.ViewModels.FromClient;
 using BirdiTMS.Models.ViewModels.FromServer;
@@ -41,8 +42,8 @@ namespace BirdiTMS.Controllers
         public async Task<IActionResult> Get()
         {
             _logger.LogInformation("getting data");
-            var data = _context.Users.AsQueryable();
-            return Ok( _mapper.Map<List<SrUserViewModel>>(data.ToList()));
+            var data = await _userManager.GetUser(User);
+            return Ok( _mapper.Map<SrUserViewModel>(data));
         }
         
 
@@ -82,19 +83,19 @@ namespace BirdiTMS.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterUserViewModel model)
         {
-            var userExists = await _userManager.FindByNameAsync(model.Username);
+            var userExists = await _userManager.FindByEmailAsync(model.Email);
             if (userExists != null)
-                return BadRequest();
+                return Conflict("User already exist");
 
             ApplicationUser user = new()
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Username
+                UserName = model.Email
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return BadRequest();
+                return BadRequest(result.Errors);
             await SetTokenWithRefreshToken(user);
             return Created();
         }

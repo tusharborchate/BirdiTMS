@@ -12,6 +12,5 @@ namespace BirdiTMS.Models.ViewModels.FromClient
         public TaskStatus Status { get; set; }
 
         public DateTime DueDate { get; set; }
-        public string UserId { get;  set; }
     }
 }

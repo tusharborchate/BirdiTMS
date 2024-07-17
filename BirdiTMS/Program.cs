@@ -36,7 +36,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ILoggerProvider, NLogLoggerProvider>();
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = null);
+;
 builder.Services.AddAutoMapper(typeof(Program));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 var securityScheme = new OpenApiSecurityScheme()
@@ -113,7 +114,7 @@ builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IBirdiTask, BirdiTaskService>();
 
 
-
+builder.Services.AddCors();
 //jwt validation
 builder.Services.AddAuthentication(options =>
 {
@@ -128,6 +129,8 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = true,
         ValidateAudience = true,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
         ValidAudience = builder.Configuration["JWT:ValidAudience"],
         ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
@@ -140,6 +143,7 @@ builder.Services.AddHsts(opt =>
     opt.MaxAge = new TimeSpan(2592000);
     opt.Preload = true;
 });
+
 LogManager.Setup().LoadConfigurationFromFile(string.Concat(Directory.GetCurrentDirectory(), "/nLog.config"));
 
 var app = builder.Build();
@@ -161,7 +165,10 @@ app.UseHsts();
 app.UseHttpsRedirection();
 app.UseResponseCompression();
 app.UseStaticFiles();
-app.UseCors();
+app.UseCors(builder => builder
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
 
 app.UseAuthorization();
 app.MapControllers();
