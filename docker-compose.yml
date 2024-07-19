@@ -26,3 +26,16 @@ services:
         - mssql-container
     networks:
         - demoappnetowrk
+ birdireact:
+    container_name: BirdiReactContainer
+    image: ${DOCKER_REGISTRY-}birdireact
+    ports:
+        - 8080:8080
+    build:
+        context: ./../birditms.react/
+        dockerfile: ./../birditms.react/dockerfile
+    depends_on:
+        - webapiefcoremigrationautomatic
+    networks:
+        - demoappnetowrk
+  

@@ -2,6 +2,7 @@
 using BirdiTMS.Middlewares;
 using BirdiTMS.Models.Entities;
 using BirdiTMS.Models.ViewModels.FromClient;
+using BirdiTMS.Models.ViewModels.FromServer;
 using BirdiTMS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,14 +18,16 @@ namespace BirdiTMS.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBirdiTask _birdiTaskService;
-
+        private readonly ILogger<BirdiTasksController> _logger;
 
         public BirdiTasksController(UserManager<ApplicationUser> userManager,
-            IBirdiTask birdiTaskService
+            IBirdiTask birdiTaskService,
+            ILogger<BirdiTasksController> logger
             )
         {
             _userManager = userManager;
             _birdiTaskService = birdiTaskService;
+            _logger = logger;
 
         }
         // GET: api/BirdiTasks
@@ -49,6 +52,7 @@ namespace BirdiTMS.Controllers
             {
                 return NotFound();
             }
+
             return Ok(entity);
         }
 
@@ -60,7 +64,10 @@ namespace BirdiTMS.Controllers
             {
                 return BadRequest();
             }
+            // no need of try catch as we are using global exception middleware
             await _birdiTaskService.UpdateTask(clBirdiTask);
+            _logger.LogInformation(" task updated " + clBirdiTask.Id);
+
             return NoContent();
         }
 
@@ -70,6 +77,8 @@ namespace BirdiTMS.Controllers
         {
             var user = await _userManager.GetUser(User);
             var entity = await _birdiTaskService.CreateTask(clBirdiTask, user);
+            _logger.LogInformation(" task created " + clBirdiTask.Id);
+
             return CreatedAtAction("GetBirdiTask", new { id = entity.Id }, entity);
         }
 
@@ -83,6 +92,8 @@ namespace BirdiTMS.Controllers
             {
                 return BadRequest();
             }
+            _logger.LogInformation(" task deleted " + id);
+
             return NoContent();
         }
     }

@@ -16,6 +16,8 @@ namespace BirdiTMS.Middlewares
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
+            //if user requesting to update/delete task
+            //which not belongs to him then return unauthorized
             var appDbContext = context.HttpContext.RequestServices.GetService<ApplicationDbContext>();
 
             var userManager = context.HttpContext.RequestServices.GetService<UserManager<ApplicationUser>>();

@@ -10,6 +10,7 @@ namespace BirdiTMS.Profiles
         public BirdiTaskProfile() 
         {
             CreateMap<BirdiTask, SrBirdiTask>();
+
             CreateMap<ClBirdiTask, BirdiTask>();
         }
     }

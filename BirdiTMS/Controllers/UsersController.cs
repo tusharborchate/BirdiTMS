@@ -41,7 +41,6 @@ namespace BirdiTMS.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            _logger.LogInformation("getting data");
             var data = await _userManager.GetUser(User);
             return Ok( _mapper.Map<SrUserViewModel>(data));
         }
@@ -58,22 +57,24 @@ namespace BirdiTMS.Controllers
                 var isAuthenticated = await _userManager.CheckPasswordAsync(user, loginUser.Password);
                 if (isAuthenticated)
                 {
+                    _logger.LogInformation(" user authenticated " + user.Email);
+
                     var token = await SetTokenWithRefreshToken(user);
                     return Ok(new
                     {
                         token = new JwtSecurityTokenHandler().WriteToken(token),
-                        expiration = DateTime.Now.AddMinutes(1)    
+                        expiration = DateTime.Now.AddMinutes(3)    
                     });
                 }
             }
-            return Unauthorized();
+            return Ok("Invalid Credentials");
         }
 
         [NonAction]
         private async Task<JwtSecurityToken> SetTokenWithRefreshToken(ApplicationUser user)
         {
             var token = await _userService.GetJwtSecurityToken(user);
-            CookieOptions cookieOptions =new CookieOptions { HttpOnly = true,Expires= DateTime.Now.AddMinutes(2) };
+            CookieOptions cookieOptions =new CookieOptions { HttpOnly = true,Expires= DateTime.Now.AddMinutes(3) };
             Response.Cookies.Append("resfreshToken","",cookieOptions);
             return token;
         }
@@ -85,7 +86,10 @@ namespace BirdiTMS.Controllers
         {
             var userExists = await _userManager.FindByEmailAsync(model.Email);
             if (userExists != null)
+            {
                 return Conflict("User already exist");
+
+            }
 
             ApplicationUser user = new()
             {
@@ -95,9 +99,14 @@ namespace BirdiTMS.Controllers
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
+            {
                 return BadRequest(result.Errors);
+            }
+            _logger.LogInformation("new user created "+ user.Email);
+
             await SetTokenWithRefreshToken(user);
-            return Created();
+
+            return Created("/login",_mapper.Map<SrUserViewModel>(user));
         }
     }
 }
